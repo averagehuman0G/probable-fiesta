@@ -59,8 +59,25 @@ function findAllChanges(id, cb) {
     });
 }
 
+function getString(id, cb) {
+    Post.findOrCreate({ where: { randid: id }, defaults: {text: ''} }).then(([room, created]) => {
+        if(!created) {
+            console.log(room.text)
+        }
+        if(created) cb("");
+        cb(room.text);
+    });
+}
+
+function setString(id, str) {
+    Post.findOne({ where: {randid: id} }).then(room => {
+        room.update({ text: str }).then(() => {});
+    });
+};
 
 
 module.exports.saveToDB = saveToDB;
 module.exports.findAllChanges = findAllChanges;
+module.exports.getString = getString;
+module.exports.setString = setString;
 

@@ -11,9 +11,10 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const saveToDB = require('./models/post').saveToDB;
 const findAllChanges = require('./models/post').findAllChanges;
+const getString = require('./models/post').getString;
+const setString = require('./models/post').setString; 
 
 app.get('/', (req, res) => {
-    console.log('going to redirect');
     res.redirect('/sesh/' + getId());
 });
 
@@ -22,9 +23,6 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-
-//app.use('/', indexRouter);
-//app.use('/users', usersRouter);
 
 function getId() {
   let id = parseInt(Math.random() * (1e9 + 5));
@@ -44,13 +42,26 @@ io.on('connection', (socket) => {
             socket.emit('replayChanges', changes);
         });
     });
+
+    socket.on('getData', (id) => {
+        getString(id, (str) => {
+            socket.emit('initEditor', str);
+        });
+    });
+
+    socket.on('setData', (id, str) => {
+        setString(id, str); 
+    });
     
 });
 
 
-
 app.get('/sesh/:id', (req, res) => {
     res.sendFile(path.join(__dirname + '/public/index.html'));
+});
+
+app.get('/replay/:id', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/replay.html'));
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
