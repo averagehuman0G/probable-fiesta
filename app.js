@@ -1,24 +1,62 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const express = require('express');
+const app = express();
 
-var app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+const saveToDB = require('./models/post').saveToDB;
+const findAllChanges = require('./models/post').findAllChanges;
+
+app.get('/', (req, res) => {
+    console.log('going to redirect');
+    res.redirect('/sesh/' + getId());
+});
+
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+//app.use('/', indexRouter);
+//app.use('/users', usersRouter);
+
+function getId() {
+  let id = parseInt(Math.random() * (1e9 + 5));
+  return id.toString(16);
+}
+
+
+io.on('connection', (socket) => {
+    console.log('a user connected');
+
+    socket.on('change', (id, change) => {
+        saveToDB(id, change);
+    });    
+
+    socket.on('replay', (id) => {
+        findAllChanges(id, (changes) => {
+            socket.emit('replayChanges', changes);
+        });
+    });
+    
+});
+
+
 
 app.get('/sesh/:id', (req, res) => {
-    res.sendFile()    
+    res.sendFile(path.join(__dirname + '/public/index.html'));
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+http.listen(3000, function() {
+    console.log('on port 3000');
 });
 
 module.exports = app;

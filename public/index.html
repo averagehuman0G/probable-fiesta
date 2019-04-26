@@ -1,13 +1,30 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Express</title>
-  <link rel="stylesheet" href="/stylesheets/style.css">
+<title>ACE in Action</title>
+<style type="text/css" media="screen">
+    #editor { 
+        position: absolute;
+        top: 25px;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+    #replay {
+        width: 10px;
+        height: 10px;
+    }
+</style>
 </head>
-
 <body>
-  <h1>Express</h1>
-  <p>Welcome to Express</p>
-</body>
 
+<div id="replay"> replay </div>
+<div id="editor">
+</div>
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.3/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="/javascripts/index.js"></script>
+</body>
 </html>

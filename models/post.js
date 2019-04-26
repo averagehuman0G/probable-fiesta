@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 
 const replaydb = new Sequelize({
     dialect: 'sqlite', 
-    storage: '../replaydb.sqlite',
+    storage: './replaydb.sqlite',
     logging: () => {},
     define: {
         sync: { force: true },
@@ -15,6 +15,15 @@ const replaydb = new Sequelize({
 });
 
 const Post = replaydb.define('post', {
+    randid: { type: Sequelize.STRING, unique: true },
+    text: Sequelize.TEXT
+}, {
+    indexes: [{
+        fields: ['randid'] 
+    }]
+}); 
+
+const PostOp = replaydb.define('postOp', {
     randid: Sequelize.STRING,
     change: Sequelize.JSON
 }, {
@@ -34,7 +43,24 @@ const PostBlob = replaydb.define('postBlob', {
 });
 
 
-replaydb.sync({ force: force_reset }).then( () => {
+replaydb.sync({ force: false }).then( () => {
     console.log('synced SQlite db to models');
 });
+
+function saveToDB(id, change) {
+    PostOp.create({ randid: id, change: change });
+}
+
+function findAllChanges(id, cb) {
+    //this should give us the changes from the begining in order.
+    PostOp.findAll({ order: ['created_at'], where: { randid: id } }).then((changes) => { 
+        //apply the changes from the array in order to the document
+        cb(changes);
+    });
+}
+
+
+
+module.exports.saveToDB = saveToDB;
+module.exports.findAllChanges = findAllChanges;
 
